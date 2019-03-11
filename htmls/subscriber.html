@@ -1,0 +1,47 @@
+<html>
+  <head>
+    <!-- *Recommended WebRTC Shim -->
+    <script src="http://webrtc.github.io/adapter/adapter-latest.js"></script>
+  </head>
+  <body>
+    <!-- video containers -->
+    <!-- subscriber -->
+    <div>
+      <video id="red5pro-subscriber" width="640" height="480" controls autoplay></video>
+    </div>
+    <!-- Red5 Pro SDK -->
+    <script src="libs/lib/red5pro/red5pro-sdk.min.js"></script>
+    <!-- Create Pub/Sub -->
+    <script>
+      (function(red5prosdk) {
+        'use strict';
+
+        // var rtcPublisher = new red5prosdk.RTCPublisher();
+        var rtcSubscriber = new red5prosdk.RTCSubscriber();
+        var config = {
+          protocol: 'ws',
+          host: 'localhost',
+          port: 5080,
+          app: 'live',
+          streamName: 'mystream',
+          rtcConfiguration: {
+            iceServers: [{urls: 'stun:stun2.l.google.com:19302'}],
+            iceCandidatePoolSize: 2,
+            bundlePolicy: 'max-bundle'
+          } // See https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/RTCPeerConnection#RTCConfiguration_dictionary
+        };
+          rtcSubscriber.init(config)
+            .then(function () {
+              return rtcSubscriber.subscribe();
+            })
+            .then(function () {
+              console.log('Playing!');
+            })
+            .catch(function (err) {
+              console.log('Could not play: ' + err);
+            });
+
+      }(window.red5prosdk));
+    </script>
+  </body>
+</html>
