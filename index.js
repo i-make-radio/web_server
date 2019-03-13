@@ -2,7 +2,67 @@ var http = require('http'),
     fs = require('fs'), 
     express = require('express');
 
+var songs = require('./songs.js')
+
 const app = express();
+
+var server = http.Server(app);
+var io = require('socket.io')(server);
+
+var songsPlayed = []
+
+io.on('connection', (socket) => {
+  socket.emit('news', { hello: 'world' });
+
+  socket.on('my other event', function (data) {
+    console.log(data);
+ });
+  
+  socket.on('startPlayingPublisher', function(songId) {
+    var song = songs[songId-1];
+    song.startTime = Date();
+    song.isPlaying = true
+    songsPlayed.push(song);
+    console.log('server in startPlayingPublisher', socket.emit);
+    io.emit('startPlayingSubscriber', song);
+  });
+
+  socket.on('stopPlayingPublisher', (data) => {
+    console.log(data.songId, songsPlayed)
+    if (data.songId == songsPlayed[songsPlayed.length - 1].id)
+    {
+      var song = songsPlayed[songsPlayed.length - 1]
+      song.isPlaying = false
+      song.timeElapsed = data.timeElapsed
+      songsPlayed[songsPlayed.length - 1] = song
+
+      io.emit('stopPlayingSubscriber', song);
+    }
+  })
+
+  socket.on('resumePlayingPublisher', (songId) => {
+    if (data.songId == songsPlayed[songsPlayed.length - 1].id)
+    {
+      var song = songsPlayed[songsPlayed.length - 1]
+      song.isPlaying = true
+      songsPlayed[songsPlayed.length - 1] = song
+
+      io.emit('startPlayingSubscriber', song);
+    }
+  })
+
+  socket.on('volumeChangePublisher', (songVolume) => {
+    io.emit('volumeChangeSubscriber', songVolume)
+  })
+});
+
+app.get('/allSongs', (req, res) => {
+  res.send(songs)
+})
+
+app.get('/playedSongs', (req, res) => {
+  res.send(songsPlayed)
+})
 
 app.get('/subscriber', (req, res) => {
 	res.sendFile(__dirname + '/htmls/subscriber.html')
@@ -13,9 +73,21 @@ app.get('/publisher', (req, res) => {
 	res.sendFile(__dirname + '/htmls/publisher.html')
 });
 
+app.get('/client_publisher', (req, res) => {
+	console.log(__dirname)
+	res.sendFile(__dirname + '/htmls/client_publisher.html')
+});
+
+app.get('/client_subscriber', (req, res) => {
+	console.log(__dirname)
+	res.sendFile(__dirname + '/htmls/client_subscriber.html')
+});
+
 app.use(express.static(__dirname + '/'))
 
-app.listen(8080);
+server.listen(8080);
+
+
 
 
 // fs.readFile('./htmls/index.html', function (err, html) {

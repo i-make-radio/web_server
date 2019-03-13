@@ -1,0 +1,27 @@
+
+<html>
+  	<head>
+	    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+		<script>
+			var socket = io.connect('http://localhost:8080');
+
+	 		 socket.on('startPlayingSubscriber', function (data) {
+				console.log('startPlayingSubscriber')
+	    		console.log(data);
+			  });
+			  
+			  socket.on('stopPlayingSubscriber', function (data) {
+				console.log('stopPlayingSubscriber')
+	    		console.log(data);
+			  });
+
+			  socket.on('volumeChangeSubscriber', function (data) {
+				  console.log('volumeChangeSubscriber')
+				  console.log(data)
+			  });
+		</script>
+	</head>
+	<body>
+		<H1>Client subsctiber</H1>>
+	</body>>
+</html>

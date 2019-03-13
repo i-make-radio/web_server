@@ -1,0 +1,30 @@
+<html>
+  	<head>
+	    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+		<script>
+	  		var socket = io.connect('http://localhost:8080');
+	 		 function start() {
+	 		 	var song = {title :'Some title'};
+	 		 	socket.emit('startPlayingPublisher', 1);
+			  }
+			  function stop() {
+				socket.emit('stopPlayingPublisher', {songId: 1, timeElapsed: 30})
+			  }
+			  function resume() {
+				  socket.emit('resumePlayingPublisher', 1)
+			  }
+			  function volumeChange() {
+				  socket.emit('volumeChangePublisher', 75)
+			  }
+
+		</script>
+	</head>
+	<body>
+			<H1>Client publisher</H1>>
+		<button onclick="start()">Start</button>>
+		<button onclick="resume()">Resume</button>>
+		<button onclick="stop()">Stop</button>>
+		<button onclick="volumeChange()">Volume Change</button>>
+	</body>>
+
+</html>
