@@ -65,13 +65,11 @@ io.on('connection', (socket) => {
 
     socket.on('change_username', (data) => {
         console.log('username changed to ' + data.username)
-        socket.sockets.username = data.username
+        socket.username = data.username
     })
 
     socket.on('new_message', (data) => {
-        console.log('server in new_message', data)
-            // io.sockets.emit('resumePlayingPublisher', { message: data.message, username: socket.username })
-
+        console.log('server in new_message', data.message, "with username", socket.username)
         io.emit('new_message', { message: data.message, username: socket.username })
     })
 
