@@ -20,46 +20,51 @@ io.on('connection', (socket) => {
 
    // Play ******************************
   
-  socket.on('startPlayingPublisher', function(songId) {
-    var song = songs[songId-1];
-    song.startTime = Date();
-    song.isPlaying = true
-    songsPlayed.push(song);
-    console.log('server in startPlayingPublisher', socket.emit);
-    io.emit('startPlayingSubscriber', song);
+  socket.on('startPlayingPublisher', (song) => {
+    console.log('server in startPlayingPublisher', song);
+
+    // const newSong = song;
+    // song.startTime = Date().now;
+    // song.isPlaying = true
+    // songsPlayed.push(song);
+
+    io.sockets.emit('startPlayingSubscriber', {hello: 'world'});
   });
 
   socket.on('stopPlayingPublisher', (data) => {
-    console.log(data.songId, songsPlayed)
-    if (data.songId == songsPlayed[songsPlayed.length - 1].id)
-    {
-      var song = songsPlayed[songsPlayed.length - 1]
-      song.isPlaying = false
-      song.timeElapsed = data.timeElapsed
-      songsPlayed[songsPlayed.length - 1] = song
+    console.log('server in stopPlayingPublisher', data)
 
-      io.emit('stopPlayingSubscriber', song);
-    }
+    // if (data.songId == songsPlayed[songsPlayed.length - 1].id)
+    // {
+    //   var song = songsPlayed[songsPlayed.length - 1]
+    //   song.isPlaying = false
+    //   song.timeElapsed = data.timeElapsed
+    //   songsPlayed[songsPlayed.length - 1] = song
+
+    io.sockets.emit('stopPlayingSubscriber', {hello: 'world'});
+    // }
   })
 
-  socket.on('resumePlayingPublisher', (songId) => {
-    if (data.songId == songsPlayed[songsPlayed.length - 1].id)
-    {
-      var song = songsPlayed[songsPlayed.length - 1]
-      song.isPlaying = true
-      songsPlayed[songsPlayed.length - 1] = song
+  socket.on('resumePlayingPublisher', (song) => {
+    console.log('server in resumePlayingPublisher', song)
 
-      io.emit('startPlayingSubscriber', song);
-    }
+    // if (data.songId == songsPlayed[songsPlayed.length - 1].id)
+    // {
+    //   var song = songsPlayed[songsPlayed.length - 1]
+    //   song.isPlaying = true
+    //   songsPlayed[songsPlayed.length - 1] = song
+
+    io.sockets.emit('resumePlayingPublisher', {hello: 'world'});
+    // }
   })
 
   // Volume ******************************
   
   socket.on('volumeChangePublisher', (songVolume) => {
-    io.emit('volumeChangeSubscriber', songVolume)
+    io.emit('volumeChangeSubscriber', {hello: 'world'})
   })
 
-  // Username ******************************
+  // Chat ******************************
 
   socket.username = "Anonymous"
   
