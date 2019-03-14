@@ -17,6 +17,8 @@ io.on('connection', (socket) => {
   socket.on('my other event', function (data) {
     console.log(data);
  });
+
+   // Play ******************************
   
   socket.on('startPlayingPublisher', function(songId) {
     var song = songs[songId-1];
@@ -51,9 +53,25 @@ io.on('connection', (socket) => {
     }
   })
 
+  // Volume ******************************
+  
   socket.on('volumeChangePublisher', (songVolume) => {
     io.emit('volumeChangeSubscriber', songVolume)
   })
+
+  // Username ******************************
+
+  socket.username = "Anonymous"
+  
+  socket.on('change_username', (data) => {
+    console.log('username changed to ' + data.username)
+    socket.username = data.username               
+  })
+
+  socket.on('new_message', (data) => {
+    io.sockets.emit('new_message', { message: data.message, username: socket.username})
+  })
+
 });
 
 app.use(function(req, res, next) {
