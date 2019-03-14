@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" const="text/html;charset=UTF-8" />
+  <link href="http://fonts.googleapis.com/css?family=Comfortaa" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" type="text/css" href="style/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+  <title>Simple Chat App</title>
+</head>
+
+<body>
+  <header>
+    <h1>Super Chat</h1>
+  </header>
+
+  <section>
+    <div id="change_username">
+      <input id="username" type="text" />
+      <button id="send_username" type="button">Change username</button>
+    </div>
+  </section>
+
+  <section id="chatroom">
+    <section id="feedback"></section>
+  </section>
+
+  <section id="input_zone">
+    <input id="message" class="vertical-align" type="text" />
+    <button id="send_message" class="vertical-align" type="button">Send</button>
+  </section>
+
+  <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <script>
+    var socket = io.connect('http://localhost:8080');
+    var message = $('#message')
+    var username = $('#username')
+    var chatroom = $('#chatroom')
+    var send_message = $('#send_message')
+    var send_username = $('#send_username')
+
+    send_username.click(function () {
+      console.log(username.val())
+      socket.emit('change_username', { username: username.val() })
+    })
+
+    message.on(`keypress`, function (e) {
+      if (e.which == 13) {
+        send_message.click();
+      }
+    })
+
+    send_message.click(function () {
+      if (message.val().length == 0) {
+        return;
+      }
+      console.log("clicked " + message.val())
+      socket.emit('new_message', { message: message.val() })
+      message.val('');
+    })
+
+    socket.on('new_message', (data) => {
+      console.log(data)
+      chatroom.append("<p class='message'>" + data.username + ": " + data.message + "</p>")
+    })
+
+  </script>
+</body>
+
+</html>

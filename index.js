@@ -108,6 +108,10 @@ app.get('/client_subscriber', (req, res) => {
 	res.sendFile(__dirname + '/htmls/client_subscriber.html')
 });
 
+app.get('/chat', (req, res) => {
+  res.sendFile(__dirname + '/htmls/chat.html')
+})
+
 app.use(express.static(__dirname + '/'))
 
 server.listen(8080);
