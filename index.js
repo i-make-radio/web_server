@@ -24,7 +24,7 @@ io.on('connection', (socket) => {
     socket.on('startPlayingPublisher', (song) => {
         console.log('******* server in startPlayingPublisher', song.id);
 
-        const timeElapsed = new Date().getTime() - song.timeElapsed
+        const timeElapsed = new Date().getTime() / 1000 - song.timeElapsed
 
         song.startTime = timeElapsed
 
