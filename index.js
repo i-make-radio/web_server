@@ -1,125 +1,127 @@
 var http = require('http'),
-    fs = require('fs'), 
+    fs = require('fs'),
     express = require('express');
 
 var songs = require('./songs.js')
 
 const app = express();
 
-var server = http.Server(app);
-var io = require('socket.io')(server);
+const server = http.Server(app);
+const io = require('socket.io')(server);
 
+var currentSong = null
 var songsPlayed = []
 
 io.on('connection', (socket) => {
-  socket.emit('news', { hello: 'world' });
+    socket.emit('news', { hello: 'world' });
 
-  socket.on('my other event', function (data) {
-    console.log(data);
- });
+    socket.on('my other event', function(data) {
+        console.log(data);
+    });
 
-   // Play ******************************
-  
-  socket.on('startPlayingPublisher', (song) => {
-    console.log('server in startPlayingPublisher', song);
+    // Play ******************************
 
-    // const newSong = song;
-    // song.startTime = Date().now;
-    // song.isPlaying = true
-    // songsPlayed.push(song);
+    socket.on('startPlayingPublisher', (song) => {
+        console.log('******* server in startPlayingPublisher', song.id);
 
-    io.sockets.emit('startPlayingSubscriber', {hello: 'world'});
-  });
+        const timeElapsed = new Date().getTime() - song.timeElapsed
 
-  socket.on('stopPlayingPublisher', (data) => {
-    console.log('server in stopPlayingPublisher', data)
+        song.startTime = timeElapsed
 
-    // if (data.songId == songsPlayed[songsPlayed.length - 1].id)
-    // {
-    //   var song = songsPlayed[songsPlayed.length - 1]
-    //   song.isPlaying = false
-    //   song.timeElapsed = data.timeElapsed
-    //   songsPlayed[songsPlayed.length - 1] = song
+        const oldSongMatchingId = songsPlayed.find(oldSong => {
+            console.log('Looking at ID', oldSong.id);
+            return oldSong.id == song.id
+        })
 
-    io.sockets.emit('stopPlayingSubscriber', {hello: 'world'});
-    // }
-  })
+        if (oldSongMatchingId == null) {
+            console.log(timeElapsed)
+            song.timeElapsed = null // Not needed for backend because we save startTime
+            songsPlayed.push(song);
+        } else {
+            oldSongMatchingId.startTime = timeElapsed
+        }
 
-  socket.on('resumePlayingPublisher', (song) => {
-    console.log('server in resumePlayingPublisher', song)
+        console.log('server in startPlayingPublisher', songsPlayed);
 
-    // if (data.songId == songsPlayed[songsPlayed.length - 1].id)
-    // {
-    //   var song = songsPlayed[songsPlayed.length - 1]
-    //   song.isPlaying = true
-    //   songsPlayed[songsPlayed.length - 1] = song
+        currentSong = song
+        io.emit('startPlayingSubscriber', { currentSong: currentSong, otherSongs: songsPlayed });
+    });
 
-    io.sockets.emit('resumePlayingPublisher', {hello: 'world'});
-    // }
-  })
+    socket.on('stopPlayingPublisher', (songId) => {
+        console.log('server in stopPlayingPublisher', songId)
+        currentSong = null
+        io.emit('stopPlayingSubscriber');
+    })
 
-  // Volume ******************************
-  
-  socket.on('volumeChangePublisher', (songVolume) => {
-    io.emit('volumeChangeSubscriber', {hello: 'world'})
-  })
+    // Volume ******************************
 
-  // Chat ******************************
+    socket.on('volumeChangePublisher', (songVolume) => {
+        io.emit('volumeChangeSubscriber', { hello: 'world' })
+    })
 
-  socket.username = "Anonymous"
-  
-  socket.on('change_username', (data) => {
-    console.log('username changed to ' + data.username)
-    socket.username = data.username               
-  })
+    // Chat ******************************
 
-  socket.on('new_message', (data) => {
-    io.sockets.emit('new_message', { message: data.message, username: socket.username})
-  })
+    socket.username = "Anonymous"
+
+    socket.on('change_username', (data) => {
+        console.log('username changed to ' + data.username)
+        socket.sockets.username = data.username
+    })
+
+    socket.on('new_message', (data) => {
+        console.log('server in new_message', data)
+            // io.sockets.emit('resumePlayingPublisher', { message: data.message, username: socket.username })
+
+        io.emit('new_message', { message: data.message, username: socket.username })
+    })
 
 });
+server.listen(8080);
 
 app.use(function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', "*");
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  next();
- })
+    res.header('Access-Control-Allow-Origin', "*");
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+})
+
+app.get('/currentSong', (req, res) => {
+    res.send({ currentSong: currentSong, otherSongs: songsPlayed })
+})
 
 app.get('/allSongs', (req, res) => {
-  res.send(songs)
+    res.send(songs)
 })
 
 app.get('/playedSongs', (req, res) => {
-  res.send(songsPlayed)
+    res.send(songsPlayed)
 })
 
 app.get('/subscriber', (req, res) => {
-	res.sendFile(__dirname + '/htmls/subscriber.html')
+    res.sendFile(__dirname + '/htmls/subscriber.html')
 });
 
 app.get('/publisher', (req, res) => {
-	console.log(__dirname)
-	res.sendFile(__dirname + '/htmls/publisher.html')
+    console.log(__dirname)
+    res.sendFile(__dirname + '/htmls/publisher.html')
 });
 
 app.get('/client_publisher', (req, res) => {
-	console.log(__dirname)
-	res.sendFile(__dirname + '/htmls/client_publisher.html')
+    console.log(__dirname)
+    res.sendFile(__dirname + '/htmls/client_publisher.html')
 });
 
 app.get('/client_subscriber', (req, res) => {
-	console.log(__dirname)
-	res.sendFile(__dirname + '/htmls/client_subscriber.html')
+    console.log(__dirname)
+    res.sendFile(__dirname + '/htmls/client_subscriber.html')
 });
 
 app.get('/chat', (req, res) => {
-  res.sendFile(__dirname + '/htmls/chat.html')
+    res.sendFile(__dirname + '/htmls/chat.html')
 })
 
 app.use(express.static(__dirname + '/'))
 
-server.listen(8080);
 
 
 
