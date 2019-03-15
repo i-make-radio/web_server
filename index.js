@@ -1,6 +1,6 @@
 var http = require('http'),
-    fs = require('fs'),
-    express = require('express');
+fs = require('fs'),
+express = require('express');
 
 var songs = require('./songs.js')
 
@@ -9,15 +9,18 @@ const app = express();
 const server = http.Server(app);
 const io = require('socket.io')(server);
 
+
+app.use(function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', "*");
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+})
+
 var currentSong = null
 var songsPlayed = []
 
 io.on('connection', (socket) => {
-    socket.emit('news', { hello: 'world' });
-
-    socket.on('my other event', function(data) {
-        console.log(data);
-    });
 
     // Play ******************************
 
@@ -56,7 +59,8 @@ io.on('connection', (socket) => {
     // Volume ******************************
 
     socket.on('volumeChangePublisher', (songVolume) => {
-        io.emit('volumeChangeSubscriber', { hello: 'world' })
+        io.emit('volumeChangeSubscriber', songVolume)
+        console.log('inVolumeChange', songVolume)
     })
 
     // Chat ******************************
@@ -75,13 +79,6 @@ io.on('connection', (socket) => {
 
 });
 server.listen(8080);
-
-app.use(function(req, res, next) {
-    res.header('Access-Control-Allow-Origin', "*");
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-    next();
-})
 
 app.get('/currentSong', (req, res) => {
     res.send({ currentSong: currentSong, otherSongs: songsPlayed })
